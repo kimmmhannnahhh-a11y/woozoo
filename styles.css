@@ -107,6 +107,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
 .tbl .col-h { font-weight: 700; }
 .tbl .src { color: var(--primary); font-weight: 500; }
 .cell-blank { color: var(--danger); }
+.cell-down { color: var(--danger); font-weight: 700; }
 .cell-term-y { color: var(--danger); font-weight: 700; }
 .tag-hit { color: var(--warning); font-weight: 700; }
 .empty-row td { color: var(--muted); padding: 40px 16px; font-size: 14px; }

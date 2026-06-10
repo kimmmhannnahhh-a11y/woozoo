@@ -32,8 +32,8 @@
       </svg>
     </div>
     <div class="upload__text">엑셀 파일을 드래그하거나 클릭하여 업로드하세요</div>
-    <div class="upload__hint">.xlsx 파일만 업로드 가능합니다</div>
-    <input type="file" id="fileInput" accept=".xlsx" hidden>
+    <div class="upload__hint">.xlsx 파일만 업로드 가능합니다 · 여러 개 동시 가능</div>
+    <input type="file" id="fileInput" accept=".xlsx" multiple hidden>
   </div>
 
   <!-- 통계 -->
@@ -58,7 +58,7 @@
     <div class="table-wrap">
       <table class="tbl">
         <thead><tr>
-          <th>행</th><th>서비스관리번호(D)</th><th>단말기(E)</th><th>해지(F)</th>
+          <th>파일명</th><th>행</th><th>서비스관리번호(D)</th><th>단말기(E)</th><th>해지(F)</th>
           <th>기준(H)</th><th>M+1(K)</th><th>M+2(N)</th><th>M+3(Q)</th><th>결과</th>
         </tr></thead>
         <tbody id="curBody"></tbody>
