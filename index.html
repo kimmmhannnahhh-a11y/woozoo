@@ -8,39 +8,51 @@
 <style>
   * { box-sizing: border-box; }
   body { font-family: 'Malgun Gothic', sans-serif; margin: 0; background: #f4f6f9; color: #222; }
-  .wrap { max-width: 820px; margin: 0 auto; padding: 24px 16px 60px; }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 24px 16px 80px; }
   h1 { font-size: 22px; margin: 8px 0 4px; }
-  .sub { color: #667; font-size: 14px; margin-bottom: 20px; line-height: 1.5; }
+  h2 { font-size: 17px; margin: 0; }
+  .sub { color: #667; font-size: 14px; margin-bottom: 16px; line-height: 1.5; }
   .rule { background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #6d5a00; margin-bottom: 18px; line-height: 1.6; }
-  #drop { border: 2.5px dashed #b8c2cc; border-radius: 14px; background: #fff; padding: 44px 20px; text-align: center; cursor: pointer; transition: .15s; }
+  #drop { border: 2.5px dashed #b8c2cc; border-radius: 14px; background: #fff; padding: 36px 20px; text-align: center; cursor: pointer; transition: .15s; }
   #drop:hover, #drop.over { border-color: #2f6fed; background: #eef4ff; }
-  #drop .big { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+  #drop .big { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
   #drop .small { font-size: 13px; color: #889; }
-  .btn { display: inline-block; margin-top: 14px; color: #fff; border: none; padding: 11px 20px; border-radius: 9px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .btn { display: inline-block; color: #fff; border: none; padding: 10px 18px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .btn:disabled { background: #c4ccd4 !important; cursor: default; }
+  .btn.add { background: #e8590c; }
   .btn.green { background: #1e9e5a; }
-  .btn.purple { background: #6f42c1; margin-left: 8px; }
-  #copyMsg { margin-left: 10px; font-size: 13px; color: #1e9e5a; font-weight: 600; }
-  #result { margin-top: 24px; display: none; }
-  .stat { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
-  .card { flex: 1; min-width: 120px; background: #fff; border: 1px solid #e3e8ee; border-radius: 10px; padding: 14px; text-align: center; }
-  .card .num { font-size: 26px; font-weight: 700; }
-  .card .lbl { font-size: 12px; color: #778; margin-top: 2px; }
-  .card.hit .num { color: #e8590c; }
-  table { width: 100%; border-collapse: collapse; background: #fff; font-size: 13px; border-radius: 10px; overflow: hidden; border: 1px solid #e3e8ee; }
-  th, td { padding: 8px 10px; text-align: center; border-bottom: 1px solid #eef1f5; }
-  th { background: #f0f3f7; font-weight: 600; }
+  .btn.purple { background: #6f42c1; }
+  .btn.gray { background: #8a939c; }
+  .btn.small { padding: 7px 13px; font-size: 13px; }
+  .msg { margin-left: 10px; font-size: 13px; color: #1e9e5a; font-weight: 600; }
+  .panel { background: #fff; border: 1px solid #e3e8ee; border-radius: 12px; padding: 18px; margin-top: 18px; }
+  .panel.acc { border: 2px solid #1e9e5a; }
+  .row-between { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  .stat { display: flex; gap: 10px; flex-wrap: wrap; }
+  .pill { background: #f0f3f7; border-radius: 8px; padding: 6px 12px; font-size: 13px; }
+  .pill b { font-size: 17px; }
+  .pill.hit b { color: #e8590c; }
+  .tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; border: 1px solid #e3e8ee; }
+  th, td { padding: 7px 9px; text-align: center; border-bottom: 1px solid #eef1f5; white-space: nowrap; }
+  th { background: #f0f3f7; font-weight: 600; position: sticky; top: 0; }
+  .tbox { max-height: 360px; overflow: auto; border-radius: 8px; }
   td.y { color: #e8590c; font-weight: 700; }
+  .del { background: #fff; border: 1px solid #f1a9a9; color: #d33; border-radius: 6px; padding: 3px 9px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .del:hover { background: #ffecec; }
   .blank { color: #c00; font-style: italic; }
   .term-y { color: #e02020; font-weight: 700; }
-  .err { background: #fff0f0; border: 1px solid #ffc9c9; color: #c00; padding: 12px 14px; border-radius: 8px; margin-top: 16px; font-size: 14px; }
-  .foot { margin-top: 14px; font-size: 12px; color: #99a; text-align: center; }
+  .src { color: #2f6fed; font-size: 12px; }
+  .empty { color: #99a; padding: 22px; text-align: center; font-size: 14px; }
+  .err { background: #fff0f0; border: 1px solid #ffc9c9; color: #c00; padding: 12px 14px; border-radius: 8px; margin-top: 14px; font-size: 14px; }
+  .foot { margin-top: 16px; font-size: 12px; color: #99a; text-align: center; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>📋 요금제그룹코드 체크</h1>
-  <div class="sub">엑셀을 올리면 기준월 <b>H</b>와 이후 <b>K · N · Q</b>(M+1·M+2·M+3 요금제그룹코드)를 비교해,<br>K·N·Q 중 하나라도 <b>H보다 낮은 요금제</b>거나 <b>빈칸</b>이면 <b>T열에 y</b>를 표시한 파일을 만듭니다.</div>
-  <div class="rule">규칙 &nbsp;① K·N·Q 중 <b>H보다 낮은 등급</b>(숫자 작음)이 있으면 <b>y</b> &nbsp;② <b>빈칸</b>이면 <b>y</b> &nbsp;③ 단, <b>단말기 'USIM'</b>이면 제외(y 안 함)<br><span style="font-size:12px;">등급: P109 &gt; I100 &gt; F79 &gt; L69 &gt; M50 &gt; R43 &gt; S33 (숫자 클수록 높은 요금제)</span></div>
+  <div class="sub">엑셀을 올려 기준월 <b>H</b> vs <b>K·N·Q</b>(M+1·M+2·M+3) 비교 → 해당 건을 <b>추가하기</b>로 아래 <b>모음표</b>에 쌓고, 한 번에 내려받으세요.</div>
+  <div class="rule">규칙 &nbsp;① K·N·Q 중 <b>H보다 낮은 등급</b>(숫자 작음) 있으면 <b>y</b> &nbsp;② <b>빈칸</b>이면 <b>y</b> &nbsp;③ 단, <b>단말기 'USIM'</b>이면 제외<br><span style="font-size:12px;">등급: P109 &gt; I100 &gt; F79 &gt; L69 &gt; M50 &gt; R43 &gt; S33 (숫자 클수록 높은 요금제)</span></div>
 
   <div id="drop">
     <div class="big">📁 여기에 엑셀 파일을 끌어다 놓으세요</div>
@@ -48,195 +60,220 @@
     <input type="file" id="file" accept=".xlsx" style="display:none">
   </div>
 
-  <div id="result">
-    <div class="stat">
-      <div class="card"><div class="num" id="cTotal">0</div><div class="lbl">전체 행</div></div>
-      <div class="card hit"><div class="num" id="cHit">0</div><div class="lbl">y 표시 (해당)</div></div>
-      <div class="card"><div class="num" id="cOk">0</div><div class="lbl">정상</div></div>
+  <!-- 현재 파일 결과 -->
+  <div class="panel" id="curPanel" style="display:none;">
+    <div class="row-between">
+      <div class="stat">
+        <span class="pill">전체 <b id="cTotal">0</b></span>
+        <span class="pill hit">해당 <b id="cHit">0</b></span>
+        <span class="pill">정상 <b id="cOk">0</b></span>
+        <span class="src" id="curName"></span>
+      </div>
+      <div class="tools">
+        <button class="btn add" id="addBtn">➕ 추가하기 (모음표로)</button>
+        <span class="msg" id="addMsg"></span>
+      </div>
     </div>
-    <button class="btn green" id="download">⬇ 결과 엑셀 내려받기</button>
-    <button class="btn purple" id="copy">📋 복사 (엑셀에 붙여넣기)</button>
-    <span id="copyMsg"></span>
-    <h3 style="margin:22px 0 8px;font-size:15px;">y 표시된 행 (H 대비 다운그레이드 / 빈칸)</h3>
-    <div id="tableBox"></div>
+    <div class="tbox" id="curBox"></div>
+  </div>
+
+  <!-- 모음표 (누적, 새로고침해도 유지) -->
+  <div class="panel acc" id="accPanel">
+    <div class="row-between">
+      <h2>📦 모음표 <span id="accCount" style="color:#1e9e5a;">(0건)</span></h2>
+      <div class="tools">
+        <button class="btn green small" id="dlAll">⬇ 전체 엑셀 내려받기</button>
+        <button class="btn purple small" id="copyAll">📋 전체 복사</button>
+        <button class="btn gray small" id="resetAll">🗑 초기화</button>
+        <span class="msg" id="accMsg"></span>
+      </div>
+    </div>
+    <div class="tbox" id="accBox"></div>
   </div>
 
   <div id="errBox"></div>
-  <div class="foot">파일은 서버로 전송되지 않고 브라우저 안에서만 처리됩니다.</div>
+  <div class="foot">파일은 서버로 전송되지 않고 브라우저 안에서만 처리됩니다. · 모음표는 이 브라우저에 자동 저장됩니다.</div>
 </div>
 
 <script>
-const BASE    = 'H';             // 기준월 요금제그룹코드
-const COMPARE = ['K','N','Q'];   // H와 비교할 열 (M+1·M+2·M+3)
-const OUTPUT  = 'T';             // 결과 표시 열
-const HEADER_ROW = 1;            // 머리글 행
+const BASE='H', COMPARE=['K','N','Q'], HEADER_ROW=1;
+const LS_KEY='woozoo_yogeum_acc_v1';
+const ACC_HEAD=['파일','행','단말기','해지','H(기준)','K','N','Q'];
 
-// 그룹코드에서 등급 숫자 추출 (P109->109, L69->69 ... 클수록 높은 요금제)
 function rankOf(code){ const m=(code||'').match(/\d+/); return m? parseInt(m[0]) : NaN; }
-function colToIndex(c){ let n=0; for(const ch of c) n=n*26+(ch.charCodeAt(0)-64); return n; } // 1-based
+function colToIndex(c){ let n=0; for(const ch of c) n=n*26+(ch.charCodeAt(0)-64); return n; }
+function colName(n){ let s=''; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26);} return s; }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s){ return esc(s).replace(/"/g,'&quot;'); }
 
-const dropEl = document.getElementById('drop');
-const fileEl = document.getElementById('file');
-let outputBlob = null, outputName = 'result.xlsx', copyTSV = '';
+let currentHits=[], currentName='';
+let accumulated=[];
+try{ accumulated = JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ accumulated=[]; }
+function saveAcc(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(accumulated)); }catch(e){} }
 
-dropEl.onclick = () => fileEl.click();
-dropEl.ondragover = e => { e.preventDefault(); dropEl.classList.add('over'); };
-dropEl.ondragleave = () => dropEl.classList.remove('over');
-dropEl.ondrop = e => { e.preventDefault(); dropEl.classList.remove('over'); if (e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); };
-fileEl.onchange = e => { if (e.target.files[0]) handle(e.target.files[0]); };
+const dropEl=document.getElementById('drop'), fileEl=document.getElementById('file');
+dropEl.onclick=()=>fileEl.click();
+dropEl.ondragover=e=>{ e.preventDefault(); dropEl.classList.add('over'); };
+dropEl.ondragleave=()=>dropEl.classList.remove('over');
+dropEl.ondrop=e=>{ e.preventDefault(); dropEl.classList.remove('over'); if(e.dataTransfer.files[0]) handle(e.dataTransfer.files[0]); };
+fileEl.onchange=e=>{ if(e.target.files[0]){ handle(e.target.files[0]); fileEl.value=''; } };
 
-// 다운로드 (앵커를 DOM에 붙였다 떼서 파일명이 제대로 적용되게)
-document.getElementById('download').onclick = () => {
-  if (!outputBlob) return;
-  const url = URL.createObjectURL(outputBlob);
-  const a = document.createElement('a');
-  a.href = url; a.download = outputName;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
-};
-
-// 복사 (전체 시트를 탭구분 텍스트로 -> 엑셀 새창 A1에 붙여넣기)
-document.getElementById('copy').onclick = async () => {
-  if (!copyTSV) return;
-  const msg = document.getElementById('copyMsg');
-  try {
-    await navigator.clipboard.writeText(copyTSV);
-    msg.textContent = '✓ 복사됨! 엑셀 새 창 A1에서 붙여넣기(Ctrl+V) 하세요';
-  } catch(e) {
-    // 폴백: 임시 textarea
-    const ta = document.createElement('textarea');
-    ta.value = copyTSV; document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); msg.textContent = '✓ 복사됨! 엑셀에 붙여넣기 하세요'; }
-    catch(_) { msg.textContent = '복사 실패 — 다운로드를 사용하세요'; }
-    document.body.removeChild(ta);
-  }
-  setTimeout(()=>{ msg.textContent=''; }, 5000);
-};
-
+// ── 엑셀 읽고 현재 결과 계산 ──
 async function handle(file){
   document.getElementById('errBox').innerHTML='';
-  document.getElementById('result').style.display='none';
-  document.getElementById('copyMsg').textContent='';
+  document.getElementById('addMsg').textContent='';
   if(!file.name.toLowerCase().endsWith('.xlsx')){ showErr('.xlsx 엑셀 파일만 올릴 수 있어요.'); return; }
   try{
-    const buf = await file.arrayBuffer();
-    const zip = await JSZip.loadAsync(buf);
-
-    const sheetPaths = Object.keys(zip.files).filter(p=>/^xl\/worksheets\/sheet\d+\.xml$/.test(p)).sort();
+    const buf=await file.arrayBuffer();
+    const zip=await JSZip.loadAsync(buf);
+    const sheetPaths=Object.keys(zip.files).filter(p=>/^xl\/worksheets\/sheet\d+\.xml$/.test(p)).sort();
     if(!sheetPaths.length){ showErr('엑셀 안에서 시트를 찾지 못했어요.'); return; }
-    const sheetPath = sheetPaths[0];
-    let xml = await zip.file(sheetPath).async('string');
+    const xml=await zip.file(sheetPaths[0]).async('string');
 
-    // 공유 문자열(있으면)
-    let shared = [];
+    let shared=[];
     if(zip.file('xl/sharedStrings.xml')){
-      const ss = await zip.file('xl/sharedStrings.xml').async('string');
-      const sdoc = new DOMParser().parseFromString(ss,'application/xml');
-      shared = [...sdoc.getElementsByTagName('si')].map(si=>
-        [...si.getElementsByTagName('t')].map(t=>t.textContent).join(''));
+      const ss=await zip.file('xl/sharedStrings.xml').async('string');
+      const sdoc=new DOMParser().parseFromString(ss,'application/xml');
+      shared=[...sdoc.getElementsByTagName('si')].map(si=>[...si.getElementsByTagName('t')].map(t=>t.textContent).join(''));
     }
-
-    const doc = new DOMParser().parseFromString(xml,'application/xml');
-    const cellVal = c => {
-      const t = c.getAttribute('t');
+    const doc=new DOMParser().parseFromString(xml,'application/xml');
+    const cellVal=c=>{ const t=c.getAttribute('t');
       if(t==='inlineStr'){ const e=c.getElementsByTagName('t')[0]; return e?e.textContent:''; }
-      const v = c.getElementsByTagName('v')[0];
-      if(!v) return '';
-      if(t==='s') return shared[parseInt(v.textContent)]||'';
-      return v.textContent;
-    };
+      const v=c.getElementsByTagName('v')[0]; if(!v) return '';
+      if(t==='s') return shared[parseInt(v.textContent)]||''; return v.textContent; };
+    const widx={}; [BASE,...COMPARE,'E','F'].forEach(c=>widx[c]=colToIndex(c));
 
-    const tIdx0 = colToIndex(OUTPUT) - 1;   // 0-based T 인덱스
-    const hits = [];
-    const grid = [];                        // 전체 시트(붙여넣기용)
-    let total = 0;
-
+    const hits=[]; let total=0;
     [...doc.getElementsByTagName('row')].forEach(row=>{
-      const rn = parseInt(row.getAttribute('r'));
-      const rowArr = [];
-      const vals = {};
+      const rn=parseInt(row.getAttribute('r')); if(rn<=HEADER_ROW) return; total++;
+      const vals={};
       [...row.getElementsByTagName('c')].forEach(c=>{
         const ref=c.getAttribute('r'); const m=ref.match(/^([A-Z]+)/); if(!m) return;
         const idx=colToIndex(m[1]);
-        const val=cellVal(c).trim();
-        rowArr[idx-1]=val;
-        vals[m[1]]=val;
+        for(const col in widx) if(idx===widx[col]) vals[col]=cellVal(c).trim();
       });
-
-      if(rn<=HEADER_ROW){ grid.push(rowArr); return; }   // 헤더 그대로
-      total++;
-
-      const hCode = vals[BASE]||'';
-      const hRank = rankOf(hCode);
-      let bad = false;
-      for(const c of COMPARE){
-        const v = vals[c]||'';
-        if(v===''){ bad = true; break; }                            // ① 빈칸 -> y
-        if(!isNaN(hRank) && rankOf(v) < hRank){ bad = true; break; } // ② H보다 낮음 -> y
-      }
-      const device = vals['E']||'';
-      const isUsim = device.toUpperCase().includes('USIM');         // ③ USIM 제외
-      const y = bad && !isUsim;
-
-      rowArr[tIdx0] = y ? 'y' : '';
-      grid.push(rowArr);
-      if(y) hits.push({rn, device, term: vals['F']||'', h: hCode, vals: COMPARE.map(c=>vals[c]||'')});
-      xml = setCell(xml, OUTPUT, rn, y?'y':'');
+      const hRank=rankOf(vals[BASE]||'');
+      let bad=false;
+      for(const c of COMPARE){ const v=vals[c]||'';
+        if(v===''){ bad=true; break; }
+        if(!isNaN(hRank) && rankOf(v)<hRank){ bad=true; break; } }
+      const isUsim=(vals['E']||'').toUpperCase().includes('USIM');
+      if(bad && !isUsim) hits.push({rn, device:vals['E']||'', term:vals['F']||'', h:vals[BASE]||'', vals:COMPARE.map(c=>vals[c]||'')});
     });
 
-    // 결과 엑셀 만들기
-    zip.file(sheetPath, xml);
-    outputBlob = await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    outputName = file.name.replace(/\.xlsx$/i,'') + '_체크.xlsx';
-
-    // 복사용 TSV (y 표시된 행만, 화면 표와 동일)
-    const head = ['행','단말기','해지','H(기준)','K','N','Q','결과'];
-    copyTSV = [head.join('\t')].concat(
-      hits.map(h => [h.rn, h.device, h.term, h.h, h.vals[0], h.vals[1], h.vals[2], 'y'].join('\t'))
-    ).join('\n');
-
-    render(total, hits);
+    currentHits=hits; currentName=file.name.replace(/\.xlsx$/i,'');
+    document.getElementById('cTotal').textContent=total;
+    document.getElementById('cHit').textContent=hits.length;
+    document.getElementById('cOk').textContent=total-hits.length;
+    document.getElementById('curName').textContent='· '+file.name;
+    document.getElementById('addBtn').disabled = hits.length===0;
+    document.getElementById('curBox').innerHTML=renderTable(hits, false);
+    document.getElementById('curPanel').style.display='block';
   }catch(err){ showErr('처리 중 오류: '+err.message); console.error(err); }
 }
 
-// 특정 행의 OUTPUT 열 셀을 inlineStr 값으로 설정 (스타일 보존)
-function setCell(xml, col, rn, value){
-  const tag = col+rn;
-  const reNormal = new RegExp(`<c r="${tag}"([^>]*)>[\\s\\S]*?</c>`);
-  const reSelf   = new RegExp(`<c r="${tag}"([^>]*)/>`);
-  let m = xml.match(reNormal) || xml.match(reSelf);
-  const sAttr = m ? (m[1].match(/\ss="\d+"/)||[''])[0] : '';
-  const cell = value!==''
-      ? `<c r="${tag}"${sAttr} t="inlineStr"><is><t>${value}</t></is></c>`
-      : `<c r="${tag}"${sAttr}/>`;
-  if(m){ return xml.replace(m[0], cell); }
-  const rowRe = new RegExp(`(<row r="${rn}"[^>]*>)([\\s\\S]*?)(</row>)`);
-  if(rowRe.test(xml)) return xml.replace(rowRe, (f,a,b,c)=> a+b+cell+c);
-  return xml;
-}
-
-function render(total, hits){
-  document.getElementById('cTotal').textContent = total;
-  document.getElementById('cHit').textContent = hits.length;
-  document.getElementById('cOk').textContent = total - hits.length;
-  let html = '<table><tr><th>행</th><th>단말기(E)</th><th>해지(F)</th><th>H(기준)</th><th>K</th><th>N</th><th>Q</th><th>결과</th></tr>';
-  if(!hits.length){ html += '<tr><td colspan="8" style="color:#778;padding:18px;">해당되는 행이 없습니다 ✅</td></tr>'; }
-  hits.forEach(h=>{
-    const cells = h.vals.map(v=> v===''? '<span class="blank">(빈칸)</span>' : v).join('</td><td>');
-    const dev = h.device===''? '<span class="blank">(빈칸)</span>' : h.device;
-    const term = h.term.toUpperCase()==='Y'
-        ? '<span class="term-y">Y</span>'
-        : (h.term===''? '-' : h.term);
-    const hc = h.h===''? '<span class="blank">(빈칸)</span>' : h.h;
-    html += `<tr><td>${h.rn}</td><td>${dev}</td><td>${term}</td><td><b>${hc}</b></td><td>${cells}</td><td class="y">y</td></tr>`;
+// ── 추가하기: 현재 y건 → 모음표 (파일+행 중복 제외) ──
+document.getElementById('addBtn').onclick=()=>{
+  let added=0;
+  currentHits.forEach(h=>{
+    if(!accumulated.some(a=>a.file===currentName && a.rn===h.rn)){
+      accumulated.push({file:currentName, rn:h.rn, device:h.device, term:h.term, h:h.h, k:h.vals[0], n:h.vals[1], q:h.vals[2]});
+      added++;
+    }
   });
-  html += '</table>';
-  document.getElementById('tableBox').innerHTML = html;
-  document.getElementById('result').style.display='block';
+  saveAcc(); renderAcc();
+  const m=document.getElementById('addMsg');
+  m.textContent = added>0 ? `✓ ${added}건 추가됨` : '이미 다 추가된 건이에요';
+  setTimeout(()=>{ m.textContent=''; }, 4000);
+};
+
+// ── 모음표 렌더 ──
+function renderAcc(){
+  document.getElementById('accCount').textContent='('+accumulated.length+'건)';
+  document.getElementById('dlAll').disabled = accumulated.length===0;
+  document.getElementById('copyAll').disabled = accumulated.length===0;
+  if(!accumulated.length){ document.getElementById('accBox').innerHTML='<div class="empty">아직 모은 게 없어요. 엑셀 올리고 ➕ 추가하기 하세요.</div>'; return; }
+  let html='<table><tr><th>파일</th><th>행</th><th>단말기</th><th>해지</th><th>H</th><th>K</th><th>N</th><th>Q</th><th>삭제</th></tr>';
+  accumulated.forEach(a=>{
+    html+='<tr><td class="src">'+esc(a.file)+'</td><td>'+a.rn+'</td><td>'+cellOrBlank(a.device)+'</td><td>'+termCell(a.term)+'</td><td><b>'+esc(a.h)+'</b></td><td>'+cellOrBlank(a.k)+'</td><td>'+cellOrBlank(a.n)+'</td><td>'+cellOrBlank(a.q)+'</td><td><button class="del" data-del data-file="'+escAttr(a.file)+'" data-rn="'+a.rn+'">✕</button></td></tr>';
+  });
+  html+='</table>';
+  document.getElementById('accBox').innerHTML=html;
 }
 
-function showErr(msg){ document.getElementById('errBox').innerHTML = '<div class="err">⚠ '+msg+'</div>'; }
+// ── 현재 결과 표 ──
+function renderTable(hits){
+  if(!hits.length) return '<div class="empty">해당되는 행이 없습니다 ✅</div>';
+  let html='<table><tr><th>행</th><th>단말기(E)</th><th>해지(F)</th><th>H(기준)</th><th>K</th><th>N</th><th>Q</th><th>결과</th></tr>';
+  hits.forEach(h=>{
+    html+='<tr><td>'+h.rn+'</td><td>'+cellOrBlank(h.device)+'</td><td>'+termCell(h.term)+'</td><td><b>'+esc(h.h)+'</b></td><td>'+cellOrBlank(h.vals[0])+'</td><td>'+cellOrBlank(h.vals[1])+'</td><td>'+cellOrBlank(h.vals[2])+'</td><td class="y">Y</td></tr>';
+  });
+  return html+'</table>';
+}
+function cellOrBlank(v){ return (v==null||v==='')? '<span class="blank">(빈칸)</span>' : esc(v); }
+function termCell(v){ return String(v).toUpperCase()==='Y' ? '<span class="term-y">Y</span>' : (v===''||v==null?'-':esc(v)); }
+
+// ── 전체 엑셀 내려받기 (모음표) ──
+document.getElementById('dlAll').onclick=async()=>{
+  if(!accumulated.length) return;
+  const aoa=[ACC_HEAD].concat(accumulated.map(a=>[a.file,a.rn,a.device,a.term,a.h,a.k,a.n,a.q]));
+  const blob=await buildXlsx(aoa,'모음');
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='요금제체크_모음.xlsx';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ document.body.removeChild(a); URL.revokeObjectURL(url); },1500);
+};
+
+// ── 전체 복사 ──
+document.getElementById('copyAll').onclick=async()=>{
+  if(!accumulated.length) return;
+  const tsv=[ACC_HEAD.join('\t')].concat(accumulated.map(a=>[a.file,a.rn,a.device,a.term,a.h,a.k,a.n,a.q].join('\t'))).join('\n');
+  const m=document.getElementById('accMsg');
+  try{ await navigator.clipboard.writeText(tsv); m.textContent='✓ 복사됨! 엑셀에 붙여넣기'; }
+  catch(e){ const ta=document.createElement('textarea'); ta.value=tsv; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');m.textContent='✓ 복사됨!';}catch(_){m.textContent='복사 실패';} document.body.removeChild(ta); }
+  setTimeout(()=>{ m.textContent=''; },4000);
+};
+
+// ── 행별 삭제 (모음표 우측 ✕) ──
+document.getElementById('accBox').addEventListener('click', e=>{
+  const btn=e.target.closest('[data-del]'); if(!btn) return;
+  const file=btn.getAttribute('data-file'); const rn=parseInt(btn.getAttribute('data-rn'));
+  accumulated=accumulated.filter(a=> !(a.file===file && a.rn===rn));
+  saveAcc(); renderAcc();
+});
+
+// ── 초기화 (전체 비우기) ──
+document.getElementById('resetAll').onclick=()=>{
+  if(!accumulated.length) return;
+  if(!confirm('모음표 '+accumulated.length+'건을 모두 지울까요?')) return;
+  accumulated=[]; saveAcc(); renderAcc();
+};
+
+// ── 새 xlsx 생성 ──
+async function buildXlsx(aoa, sheetName){
+  let rowsXml='';
+  aoa.forEach((row,ri)=>{ let cells='';
+    row.forEach((val,ci)=>{ cells+='<c r="'+colName(ci+1)+(ri+1)+'" t="inlineStr"><is><t xml:space="preserve">'+esc(val)+'</t></is></c>'; });
+    rowsXml+='<row r="'+(ri+1)+'">'+cells+'</row>';
+  });
+  const sheet='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'+rowsXml+'</sheetData></worksheet>';
+  const ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>';
+  const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  const wb='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+esc(sheetName||'Sheet1')+'" sheetId="1" r:id="rId1"/></sheets></workbook>';
+  const wbr='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>';
+  const zip=new JSZip();
+  zip.file('[Content_Types].xml',ct);
+  zip.file('_rels/.rels',rels);
+  zip.file('xl/workbook.xml',wb);
+  zip.file('xl/_rels/workbook.xml.rels',wbr);
+  zip.file('xl/worksheets/sheet1.xml',sheet);
+  return await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+function showErr(msg){ document.getElementById('errBox').innerHTML='<div class="err">⚠ '+msg+'</div>'; }
+
+// 시작 시 저장된 모음표 복원
+renderAcc();
 </script>
 </body>
 </html>
