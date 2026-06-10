@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#fff3b0">
+<title>내 할일</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: "맑은 고딕", "Malgun Gothic", -apple-system, sans-serif;
+    background: #6b6456;
+    display: flex; justify-content: center;
+    min-height: 100vh;
+  }
+  .note {
+    width: 360px; max-width: 100vw;
+    margin: 18px;
+    background: #fff7c2;
+    border-radius: 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    position: relative;
+    padding: 22px 18px 18px;
+    background-image: linear-gradient(#fff7c2 29px, #f3e89a 30px);
+    background-size: 100% 30px;
+  }
+  /* 노트 위 테이프 */
+  .note::before {
+    content: ""; position: absolute; top: -12px; left: 50%;
+    transform: translateX(-50%) rotate(-2deg);
+    width: 110px; height: 26px;
+    background: rgba(255,255,255,.45);
+    border: 1px dashed rgba(0,0,0,.12);
+  }
+  h1 {
+    font-size: 19px; margin: 0 0 2px; color: #4a431f;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .date { font-size: 12px; color: #8a7f4a; margin-bottom: 12px; }
+  .who {
+    display: flex; align-items: center; gap: 6px;
+    margin-bottom: 14px; font-size: 13px; color: #6b6029;
+  }
+  select {
+    font-size: 14px; font-weight: 700; color: #4a431f;
+    border: none; border-bottom: 1.5px solid #c9b94e;
+    background: transparent; padding: 2px 4px; font-family: inherit;
+  }
+  .sec-title {
+    font-size: 13px; font-weight: 800; color: #7a6a1f;
+    margin: 16px 0 4px; letter-spacing: .5px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  ul { list-style: none; margin: 0; padding: 0; }
+  li {
+    display: flex; align-items: flex-start; gap: 9px;
+    padding: 6px 2px; line-height: 1.5; min-height: 30px;
+    border-bottom: 1px dotted rgba(0,0,0,.06);
+    cursor: pointer; transition: opacity .25s, transform .25s;
+  }
+  li .box {
+    flex: 0 0 20px; width: 20px; height: 20px; margin-top: 2px;
+    border: 2px solid #b9a83e; border-radius: 5px; background: #fffef0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: #2e7d32; font-weight: 900;
+  }
+  li .txt { flex: 1; font-size: 14.5px; color: #3d3713; }
+  li .cyc {
+    display: inline-block; font-size: 10.5px; color: #fff;
+    background: #c2a83a; border-radius: 8px; padding: 1px 7px;
+    margin-left: 6px; vertical-align: middle; white-space: nowrap;
+  }
+  li.done { opacity: .35; }
+  li.done .txt { text-decoration: line-through; }
+  li.done .box { background: #b9a83e; }
+  .empty { font-size: 13px; color: #a79a5e; padding: 8px 2px; font-style: italic; }
+  .footer {
+    margin-top: 18px; display: flex; justify-content: space-between;
+    align-items: center; font-size: 12px; color: #8a7f4a;
+  }
+  .reset {
+    border: none; background: #e9d873; color: #5b5012;
+    font-family: inherit; font-size: 12px; font-weight: 700;
+    padding: 6px 12px; border-radius: 14px; cursor: pointer;
+  }
+  .reset:active { background: #ddc94f; }
+  .count { font-weight: 800; color: #6b6029; }
+</style>
+</head>
+<body>
+<div class="note">
+  <h1>📝 오늘 할일</h1>
+  <div class="date" id="date"></div>
+  <div class="who">
+    이름:
+    <select id="who">
+      <option value="김한아">김한아</option>
+      <option value="서영민">서영민</option>
+      <option value="고지원">고지원</option>
+    </select>
+    <span id="leftcount" class="count"></span>
+  </div>
+
+  <div class="sec-title">📌 내 담당업무</div>
+  <ul id="own"></ul>
+
+  <div class="sec-title">🤝 내 대무업무</div>
+  <ul id="bak"></ul>
+
+  <div class="footer">
+    <span>한 건 누르면 지워져요 · 매일 아침 다시 채워짐</span>
+    <button class="reset" id="reset">전체 되돌리기</button>
+  </div>
+</div>
+
+<script>
+/* ===== 업무 목록 =====
+   사진에서 읽은 내용이에요. 틀린 업무명/담당자 있으면 알려주시면 바로 고칠게요. */
+const TASKS = [
+  { type:"정기", task:"물류", owner:"고지원", backup:"서영민", cyc:"매일" },
+  { type:"정기", task:"요금제 하향 확인 M+3", owner:"김한아", backup:"", cyc:"매월 05일" },
+  { type:"정기", task:"세금계산서 완료여부 확인", owner:"김한아", backup:"", cyc:"매월 말일" },
+  { type:"정기", task:"<20일 이전> 계산서 및 정산금", owner:"김한아", backup:"", cyc:"매월 25일" },
+  { type:"정기", task:"시장단가 접수", owner:"김한아", backup:"", cyc:"매일 오전" },
+  { type:"수시", task:"거래처 정보 등록", owner:"김한아", backup:"", cyc:"" },
+  { type:"정기", task:"[무선] SK 정책 전달", owner:"김한아", backup:"", cyc:"" },
+  { type:"정기", task:"[무선] SK 시장단가 카톡전달", owner:"김한아", backup:"서영민", cyc:"매일 오전" },
+  { type:"수시", task:"올케어 관리", owner:"서영민", backup:"김한아", cyc:"" },
+  { type:"정기", task:"SKT 유선 영업 업데이트 현황", owner:"서영민", backup:"", cyc:"매일 오전" },
+  { type:"정기", task:"공시지원금 변동 확인", owner:"서영민", backup:"", cyc:"매일" },
+  { type:"정기", task:"판매점 포탈", owner:"서영민", backup:"김한아", cyc:"매일 출근후" },
+  { type:"정기", task:"SK 유선 정산입력 (11시 전까지)", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
+  { type:"정기", task:"SK 무선 기기접수 정산입력 (11시까지)", owner:"서영민", backup:"김한아", cyc:"" },
+  { type:"정기", task:"<25-27일> 동탄 기기 미개통 확인", owner:"서영민", backup:"", cyc:"매월 27일" },
+  { type:"수시", task:"웹 접수 등록 (유선) + 유선정산 시트입력", owner:"서영민", backup:"김한아", cyc:"" },
+  { type:"정기", task:"[무선] 정산시트 정책금액 확인", owner:"서영민", backup:"", cyc:"매일" },
+  { type:"정기", task:"[무선] 서비스 관련 반영", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
+  { type:"정기", task:"[무선] SK 무선 기기개통 정산입력", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
+  { type:"정기", task:"[무선] 개통확인", owner:"서영민", backup:"김한아", cyc:"매일 오후" },
+  { type:"수시", task:"웹 접수 등록 (무선)", owner:"서영민", backup:"김한아", cyc:"" },
+  { type:"정기", task:"[무선] KT 비대면 데이터 개통 리스트", owner:"서영민", backup:"", cyc:"매월" },
+  { type:"정기", task:"[무선] KT 재고현황 카톡전달 (BMT)", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
+];
+
+/* ===== 날짜 (오늘) ===== */
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+const WEEK = ["일","월","화","수","목","금","토"];
+function todayLabel(){
+  const d = new Date();
+  return `${d.getMonth()+1}월 ${d.getDate()}일 (${WEEK[d.getDay()]})`;
+}
+
+/* ===== 완료 상태 저장 (매일 리셋) ===== */
+function loadDone(){
+  try {
+    const raw = JSON.parse(localStorage.getItem("todoDone") || "{}");
+    if (raw.date !== todayStr()) return {};   // 날짜 바뀌면 초기화
+    return raw.items || {};
+  } catch(e){ return {}; }
+}
+function saveDone(items){
+  localStorage.setItem("todoDone", JSON.stringify({ date: todayStr(), items }));
+}
+
+let done = loadDone();
+let me = localStorage.getItem("todoWho") || "김한아";
+
+const $own = document.getElementById("own");
+const $bak = document.getElementById("bak");
+const $who = document.getElementById("who");
+$who.value = me;
+document.getElementById("date").textContent = todayLabel();
+
+function key(t){ return t.task + "|" + t.owner; }
+
+function makeLi(t){
+  const li = document.createElement("li");
+  const k = key(t);
+  if (done[k]) li.classList.add("done");
+  const cyc = t.cyc ? `<span class="cyc">${t.cyc}</span>` : "";
+  li.innerHTML = `<span class="box">${done[k] ? "✓" : ""}</span>` +
+                 `<span class="txt">${t.task}${cyc}</span>`;
+  li.onclick = () => {
+    if (done[k]) { delete done[k]; }
+    else { done[k] = true; }
+    saveDone(done);
+    render();
+  };
+  return li;
+}
+
+function render(){
+  me = $who.value;
+  localStorage.setItem("todoWho", me);
+  $own.innerHTML = ""; $bak.innerHTML = "";
+
+  const own = TASKS.filter(t => t.owner === me);
+  const bak = TASKS.filter(t => t.backup === me);
+
+  // 안 끝난 것 위로, 끝난 것 아래로
+  const order = arr => arr.slice().sort((a,b)=> (done[key(a)]?1:0) - (done[key(b)]?1:0));
+
+  if (own.length) order(own).forEach(t => $own.appendChild(makeLi(t)));
+  else $own.innerHTML = '<div class="empty">담당업무 없음</div>';
+
+  if (bak.length) order(bak).forEach(t => $bak.appendChild(makeLi(t)));
+  else $bak.innerHTML = '<div class="empty">대무업무 없음</div>';
+
+  const all = [...own, ...bak];
+  const left = all.filter(t => !done[key(t)]).length;
+  document.getElementById("leftcount").textContent = left ? `· 남은 일 ${left}개` : "· 다 했어요! 🎉";
+}
+
+$who.onchange = render;
+document.getElementById("reset").onclick = () => { done = {}; saveDone(done); render(); };
+
+render();
+</script>
+</body>
+</html>
