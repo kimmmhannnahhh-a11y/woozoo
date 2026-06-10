@@ -83,8 +83,9 @@
         if (v === '') { bad = true; break; }                          // 빈값 → 해당
         if (!isNaN(hRank) && rankOf(v) < hRank) { bad = true; break; } // 등급 하향 → 해당
       }
-      const isUsim = (vals[DEVICE] || '').toUpperCase().includes('USIM'); // USIM 제외
-      if (bad && !isUsim) {
+      const isUsim = (vals[DEVICE] || '').toUpperCase().includes('USIM'); // USIM 은 무조건 제외
+      const isTerm = (vals[TERM] || '').toUpperCase() === 'Y';            // 회선해지 Y
+      if ((bad || isTerm) && !isUsim) {                                  // (요금제 사유 OR 해지 Y) & USIM 아님
         hits.push({
           file: fileName, rn, svc: vals[SVC] || '', device: vals[DEVICE] || '', term: vals[TERM] || '',
           h: vals[BASE] || '', vals: COMPARE.map(c => vals[c] || '')
