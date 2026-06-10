@@ -11,9 +11,11 @@
   const HEADER_ROW = 1;
   const LS_KEY = 'woozoo_yogeum_acc_v1';
   const DL_HEAD = ['파일명', '행', '서비스관리번호', '단말기', '해지', '기준(H)', 'M+1(K)', 'M+2(N)', 'M+3(Q)'];
+  const CHK = { K: 'chkK', N: 'chkN', Q: 'chkQ' }; // 칸별 "검증 제외" 체크박스
 
   // ---- 상태 ----
-  let currentHits = [];     // 현재 업로드한 파일들의 해당 건 (각 항목에 file 포함)
+  let loaded = { rows: [], total: 0, fileCount: 0 }; // 업로드한 전체 원본 데이터
+  let currentHits = [];
   let accumulated = load();
 
   // ---- 유틸 ----
@@ -44,7 +46,7 @@
     };
   }
 
-  // ---- 엑셀 1개 파싱 + 검증 → {fileTotal, hits} ----
+  // ---- 엑셀 1개 파싱 → {fileTotal, rows(원본 전체)} ----
   async function parseOne(file) {
     const fileName = file.name.replace(/\.xlsx$/i, '');
     const zip = await JSZip.loadAsync(await file.arrayBuffer());
@@ -64,7 +66,7 @@
     const want = [BASE, ...COMPARE, SVC, DEVICE, TERM];
     const widx = {}; want.forEach(c => widx[c] = colToIndex(c));
 
-    const hits = [];
+    const rows = [];
     let fileTotal = 0;
     [...doc.getElementsByTagName('row')].forEach(row => {
       const rn = parseInt(row.getAttribute('r'));
@@ -76,43 +78,59 @@
         const idx = colToIndex(m[1]);
         for (const col in widx) if (idx === widx[col]) vals[col] = cellVal(c).trim();
       });
-      const hRank = rankOf(vals[BASE] || '');
-      let bad = false;
-      for (const c of COMPARE) {
-        const v = vals[c] || '';
-        if (v === '') { bad = true; break; }                          // 빈값 → 해당
-        if (!isNaN(hRank) && rankOf(v) < hRank) { bad = true; break; } // 등급 하향 → 해당
-      }
-      const isUsim = (vals[DEVICE] || '').toUpperCase().includes('USIM'); // USIM 제외
-      if (bad && !isUsim) {
-        hits.push({
-          file: fileName, rn, svc: vals[SVC] || '', device: vals[DEVICE] || '', term: vals[TERM] || '',
-          h: vals[BASE] || '', vals: COMPARE.map(c => vals[c] || '')
-        });
-      }
+      rows.push({
+        file: fileName, rn,
+        svc: vals[SVC] || '', device: vals[DEVICE] || '', term: vals[TERM] || '',
+        h: vals[BASE] || '', k: vals['K'] || '', n: vals['N'] || '', q: vals['Q'] || ''
+      });
     });
-    return { fileTotal, hits };
+    return { fileTotal, rows };
   }
 
-  // ---- 여러 파일 한 번에 처리 ----
+  // ---- 여러 파일 처리 → 원본 보관 후 판정 ----
   async function processFiles(fileList) {
     $('errBox').innerHTML = '';
     $('addMsg').textContent = '';
     const files = [...fileList].filter(f => f.name.toLowerCase().endsWith('.xlsx'));
     if (!files.length) { showErr('.xlsx 엑셀 파일만 업로드할 수 있습니다.'); return; }
 
-    let total = 0; const allHits = []; const errs = [];
+    let total = 0; const allRows = []; const errs = [];
     for (const file of files) {
-      try { const r = await parseOne(file); total += r.fileTotal; allHits.push(...r.hits); }
+      try { const r = await parseOne(file); total += r.fileTotal; allRows.push(...r.rows); }
       catch (err) { errs.push(file.name + ': ' + err.message); console.error(err); }
     }
-    currentHits = allHits;
-    renderCurrent(total, allHits, files.length);
+    loaded = { rows: allRows, total, fileCount: files.length };
+    recompute();
     if (errs.length) showErr('일부 파일 오류 — ' + errs.join(' / '));
   }
 
+  // ---- 체크 안 된(=검증할) M+ 칸 목록 ----
+  function activeCols() {
+    return COMPARE.filter(c => { const el = $(CHK[c]); return !(el && el.checked); });
+  }
+
+  // ---- 판정 + 화면 갱신 (체크박스 토글/업로드 시 호출) ----
+  function recompute() {
+    const active = activeCols();
+    const hits = [];
+    for (const r of loaded.rows) {
+      const hRank = rankOf(r.h);
+      let bad = false;
+      for (const c of active) {
+        const v = r[c.toLowerCase()] || '';
+        if (v === '') { bad = true; break; }                          // 빈값 → 해당
+        if (!isNaN(hRank) && rankOf(v) < hRank) { bad = true; break; } // 등급 하향 → 해당
+      }
+      const isUsim = (r.device || '').toUpperCase().includes('USIM');  // USIM 제외
+      if (bad && !isUsim) hits.push(r);
+    }
+    currentHits = hits;
+    renderCurrent(loaded.total, hits, loaded.fileCount, active);
+  }
+
   // ---- 렌더: 검증 결과(현재) ----
-  function renderCurrent(total, hits, fileCount) {
+  function renderCurrent(total, hits, fileCount, active) {
+    active = active || COMPARE;
     $('statTotal').textContent = total.toLocaleString();
     $('statHit').textContent = hits.length.toLocaleString();
     $('statOk').textContent = (total - hits.length).toLocaleString();
@@ -120,6 +138,7 @@
     $('btnAdd').disabled = hits.length === 0;
     $('btnClear').disabled = total === 0;
 
+    const aK = active.includes('K'), aN = active.includes('N'), aQ = active.includes('Q');
     const tb = $('curBody');
     if (!hits.length) {
       tb.innerHTML = '<tr class="empty-row"><td colspan="10">' + (total ? '해당되는 건이 없습니다.' : '엑셀 파일을 업로드하면 결과가 표시됩니다.') + '</td></tr>';
@@ -128,8 +147,8 @@
     tb.innerHTML = hits.map(h => {
       const hr = rankOf(h.h);
       return '<tr><td class="src">' + esc(h.file) + '</td><td>' + h.rn + '</td><td>' + cellOrBlank(h.svc) + '</td><td>' + cellOrBlank(h.device) + '</td><td>' + termCell(h.term) +
-      '</td><td class="col-h">' + esc(h.h) + '</td><td>' + gradeCell(h.vals[0], hr) + '</td><td>' + gradeCell(h.vals[1], hr) +
-      '</td><td>' + gradeCell(h.vals[2], hr) + '</td><td class="tag-hit">해당</td></tr>';
+        '</td><td class="col-h">' + esc(h.h) + '</td><td>' + colCell(h.k, hr, aK) + '</td><td>' + colCell(h.n, hr, aN) +
+        '</td><td>' + colCell(h.q, hr, aQ) + '</td><td class="tag-hit">해당</td></tr>';
     }).join('');
   }
 
@@ -147,19 +166,23 @@
     tb.innerHTML = accumulated.map(a => {
       const hr = rankOf(a.h);
       return '<tr><td class="src">' + esc(a.file) + '</td><td>' + a.rn + '</td><td>' + cellOrBlank(a.svc) + '</td><td>' + cellOrBlank(a.device) +
-      '</td><td>' + termCell(a.term) + '</td><td class="col-h">' + esc(a.h) + '</td><td>' + gradeCell(a.k, hr) + '</td><td>' + gradeCell(a.n, hr) +
-      '</td><td>' + gradeCell(a.q, hr) + '</td><td><button class="icon-btn" data-del data-file="' + escAttr(a.file) + '" data-rn="' + a.rn + '" title="삭제">' + xIcon() + '</button></td></tr>';
+        '</td><td>' + termCell(a.term) + '</td><td class="col-h">' + esc(a.h) + '</td><td>' + gradeCell(a.k, hr) + '</td><td>' + gradeCell(a.n, hr) +
+        '</td><td>' + gradeCell(a.q, hr) + '</td><td><button class="icon-btn" data-del data-file="' + escAttr(a.file) + '" data-rn="' + a.rn + '" title="삭제">' + xIcon() + '</button></td></tr>';
     }).join('');
   }
 
   function cellOrBlank(v) { return (v == null || v === '') ? '<span class="cell-blank">(빈값)</span>' : esc(v); }
-  // K·N·Q 셀: 빈값이거나 H보다 낮으면 빨간색
+  // 검증 대상 칸: 빈값/H보다 낮으면 빨강
   function gradeCell(v, hRank) {
     if (v == null || v === '') return '<span class="cell-blank">(빈값)</span>';
     const r = rankOf(v);
     if (!isNaN(hRank) && !isNaN(r) && r < hRank) return '<span class="cell-down">' + esc(v) + '</span>';
     return esc(v);
   }
+  // 제외된(체크된) 칸: 회색, 검증 안 함
+  function ignoredCell(v) { return '<span class="cell-ignored">' + ((v == null || v === '') ? '(빈값)' : esc(v)) + '</span>'; }
+  function colCell(v, hRank, active) { return active ? gradeCell(v, hRank) : ignoredCell(v); }
+
   function termCell(v) { return String(v).toUpperCase() === 'Y' ? '<span class="cell-term-y">Y</span>' : (v === '' || v == null ? '-' : esc(v)); }
   function xIcon() { return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>'; }
   function showErr(msg) { $('errBox').innerHTML = '<div style="margin-top:16px;color:var(--danger);font-size:14px;">' + esc(msg) + '</div>'; }
@@ -197,12 +220,15 @@
     drop.ondrop = e => { e.preventDefault(); drop.classList.remove('is-drag'); if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files); };
     fileEl.onchange = e => { if (e.target.files.length) { processFiles(e.target.files); fileEl.value = ''; } };
 
-    // 업로드 데이터 추가 → 모음표 (각 건의 파일명 기준 중복 제외)
+    // 칸 제외 체크박스 → 즉시 재판정
+    COMPARE.forEach(c => { const el = $(CHK[c]); if (el) el.onchange = recompute; });
+
+    // 업로드 데이터 추가 → 모음표
     $('btnAdd').onclick = () => {
       let added = 0;
       currentHits.forEach(h => {
         if (!accumulated.some(a => a.file === h.file && a.rn === h.rn)) {
-          accumulated.push({ file: h.file, rn: h.rn, svc: h.svc, device: h.device, term: h.term, h: h.h, k: h.vals[0], n: h.vals[1], q: h.vals[2] });
+          accumulated.push({ file: h.file, rn: h.rn, svc: h.svc, device: h.device, term: h.term, h: h.h, k: h.k, n: h.n, q: h.q });
           added++;
         }
       });
@@ -210,8 +236,8 @@
       flash($('addMsg'), added > 0 ? added + '건 추가됨' : '이미 추가된 항목입니다');
     };
 
-    // 초기화 (현재 검증 결과만)
-    $('btnClear').onclick = () => { currentHits = []; renderCurrent(0, [], 0); };
+    // 초기화 (현재 검증 결과)
+    $('btnClear').onclick = () => { loaded = { rows: [], total: 0, fileCount: 0 }; currentHits = []; renderCurrent(0, [], 0, COMPARE); };
 
     // 행별 삭제
     $('accBody').addEventListener('click', e => {
@@ -259,8 +285,10 @@
 
   // ---- 초기화 ----
   function init() {
+    // 체크박스는 매번 해제 상태로 시작
+    COMPARE.forEach(c => { const el = $(CHK[c]); if (el) el.checked = false; });
     bind();
-    renderCurrent(0, [], 0);
+    renderCurrent(0, [], 0, COMPARE);
     renderAcc();
   }
   document.addEventListener('DOMContentLoaded', init);
