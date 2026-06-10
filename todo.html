@@ -78,10 +78,21 @@
   }
   li .txt { flex: 1; font-size: 14.5px; color: #3d3713; }
   li .cyc {
-    display: inline-block; font-size: 10.5px; color: #fff;
-    background: #c2a83a; border-radius: 8px; padding: 1px 7px;
-    margin-left: 6px; vertical-align: middle; white-space: nowrap;
+    flex: 0 0 auto; font-size: 10.5px; color: #fff;
+    background: #c2a83a; border-radius: 8px; padding: 2px 7px;
+    margin-top: 2px; white-space: nowrap;
   }
+  /* 편집 모드 - 바로 수정하는 칸 */
+  li input.edit-cyc {
+    flex: 0 0 78px; width: 78px; font-family: inherit; font-size: 11px; color: #5b5012;
+    border: 1px solid #d8c64f; border-radius: 8px; background: #fffef0;
+    padding: 3px 6px; margin-top: 1px;
+  }
+  li input.edit-name {
+    flex: 1; min-width: 0; font-family: inherit; font-size: 14.5px; color: #3d3713;
+    border: none; border-bottom: 1.5px solid #d8c64f; background: transparent; padding: 3px 2px;
+  }
+  li input.edit-cyc:focus, li input.edit-name:focus { outline: none; border-color: #8aa35a; }
   li.done { opacity: .35; }
   li.done .txt { text-decoration: line-through; }
   li.done .box { background: #b9a83e; }
@@ -98,6 +109,7 @@
     flex: 1; font-family: inherit; font-size: 14px; padding: 6px 8px;
     border: 1.5px solid #c9b94e; border-radius: 6px; background: #fffef0; color: #3d3713;
   }
+  .add-row #addCyc { flex: 0 0 60px; width: 60px; text-align: center; }
   .add-row button {
     border: none; background: #7bc47f; color: #163d18; font-weight: 800;
     font-family: inherit; font-size: 14px; padding: 7px 12px; border-radius: 6px; cursor: pointer;
@@ -126,7 +138,8 @@
   <div class="sec-title">📌 내 담당업무</div>
   <ul id="own"></ul>
   <div class="add-row">
-    <input id="addInput" type="text" placeholder="새 담당업무 이름 입력">
+    <input id="addCyc" type="text" placeholder="주기">
+    <input id="addInput" type="text" placeholder="새 담당업무 이름">
     <button id="addBtn">+ 추가</button>
   </div>
 
@@ -135,7 +148,7 @@
   </div>
   <ul id="bak" class="collapsed"></ul>
 
-  <div class="hint">✏️ 편집 중: 이름 누르면 수정 · 🗑️ 누르면 삭제 · 아래 칸에서 담당업무 추가</div>
+  <div class="hint">✏️ 편집 중: 칸 안에서 바로 수정 (앞=주기, 뒤=업무명) · 🗑️ 삭제 · 맨 아래 칸에서 추가</div>
 
   <div class="footer">
     <span>한 건 누르면 지워져요 · 매일 아침 다시 채워짐</span>
@@ -218,30 +231,43 @@ document.getElementById("date").textContent = todayLabel();
 function makeLi(t){
   const li = document.createElement("li");
   if (done[t.id]) li.classList.add("done");
-  const cyc = t.cyc ? `<span class="cyc">${t.cyc}</span>` : "";
 
   if (editMode) {
     li.style.cursor = "default";
-    li.innerHTML = `<span class="txt">${t.task}${cyc}</span>` +
-                   `<button class="mini rename" title="이름수정">✏️</button>` +
-                   `<button class="mini del" title="삭제">🗑️</button>`;
-    li.querySelector(".rename").onclick = () => renameTask(t);
-    li.querySelector(".txt").onclick = () => renameTask(t);
-    li.querySelector(".del").onclick = () => deleteTask(t);
+
+    // 주기 칸 (맨 앞) — 바로 수정, 비우면 배지 없음
+    const cycI = document.createElement("input");
+    cycI.className = "edit-cyc"; cycI.value = t.cyc; cycI.placeholder = "주기";
+    cycI.addEventListener("input", () => { t.cyc = cycI.value; });
+    cycI.addEventListener("blur", () => { t.cyc = cycI.value.trim(); saveTasks(); });
+    cycI.addEventListener("keydown", e => { if (e.key === "Enter") cycI.blur(); });
+
+    // 업무 이름 칸 — 바로 수정
+    const nameI = document.createElement("input");
+    nameI.className = "edit-name"; nameI.value = t.task;
+    nameI.addEventListener("input", () => { t.task = nameI.value; });
+    nameI.addEventListener("blur", () => { if (nameI.value.trim()) t.task = nameI.value.trim(); else nameI.value = t.task; saveTasks(); });
+    nameI.addEventListener("keydown", e => { if (e.key === "Enter") nameI.blur(); });
+
+    // 삭제
+    const del = document.createElement("button");
+    del.className = "mini del"; del.textContent = "🗑️"; del.title = "삭제";
+    del.onclick = () => deleteTask(t);
+
+    li.appendChild(cycI);
+    li.appendChild(nameI);
+    li.appendChild(del);
   } else {
+    const cyc = t.cyc ? `<span class="cyc">${t.cyc}</span>` : "";
     li.innerHTML = `<span class="box">${done[t.id] ? "✓" : ""}</span>` +
-                   `<span class="txt">${t.task}${cyc}</span>`;
+                   cyc +
+                   `<span class="txt">${t.task}</span>`;
     li.onclick = () => {
       if (done[t.id]) delete done[t.id]; else done[t.id] = true;
       saveDone(); render();
     };
   }
   return li;
-}
-
-function renameTask(t){
-  const v = prompt("업무 이름을 고쳐주세요", t.task);
-  if (v !== null && v.trim()) { t.task = v.trim(); saveTasks(); render(); }
 }
 function deleteTask(t){
   if (confirm(`'${t.task}'\n이 업무를 삭제할까요?`)) {
@@ -252,10 +278,11 @@ function deleteTask(t){
 }
 function addTask(){
   const inp = document.getElementById("addInput");
+  const cycInp = document.getElementById("addCyc");
   const v = inp.value.trim();
   if (!v) { inp.focus(); return; }
-  tasks.push({ id: "u" + Date.now() + Math.floor(Math.random()*1000), task: v, owner: me, backup: "", cyc: "" });
-  inp.value = "";
+  tasks.push({ id: "u" + Date.now() + Math.floor(Math.random()*1000), task: v, owner: me, backup: "", cyc: cycInp.value.trim() });
+  inp.value = ""; cycInp.value = "";
   saveTasks(); render();
 }
 
@@ -284,14 +311,17 @@ $bakTitle.onclick = () => {
 
 /* 편집 모드 켜고 끄기 */
 $editBtn.onclick = () => {
+  if (editMode && document.activeElement) document.activeElement.blur(); // 수정 중이던 값 저장
   editMode = !editMode;
   $note.classList.toggle("editing", editMode);
   $editBtn.textContent = editMode ? "✅ 완료" : "✏️ 편집";
+  saveTasks();
   render();
 };
 
 document.getElementById("addBtn").onclick = addTask;
 document.getElementById("addInput").addEventListener("keydown", e => { if (e.key === "Enter") addTask(); });
+document.getElementById("addCyc").addEventListener("keydown", e => { if (e.key === "Enter") document.getElementById("addInput").focus(); });
 
 document.getElementById("reset").onclick = () => { done = {}; saveDone(); render(); };
 
