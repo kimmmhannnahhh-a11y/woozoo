@@ -10,7 +10,7 @@
   const TERM = 'F';                 // 회선해지여부
   const HEADER_ROW = 1;
   const LS_KEY = 'woozoo_yogeum_acc_v1';
-  const DL_HEAD = ['파일명', '행', '서비스관리번호', '단말기', '해지', '기준(H)', 'M+1(K)', 'M+2(N)', 'M+3(Q)'];
+  const DL_HEAD = ['파일명', '서비스관리번호', '단말기', '해지', '기준(H)', 'M+1(K)', 'M+2(N)', 'M+3(Q)'];
   const CHK = { K: 'chkK', N: 'chkN', Q: 'chkQ' }; // 칸별 "검증 제외" 체크박스
 
   // ---- 상태 ----
@@ -142,12 +142,12 @@
     const aK = active.includes('K'), aN = active.includes('N'), aQ = active.includes('Q');
     const tb = $('curBody');
     if (!hits.length) {
-      tb.innerHTML = '<tr class="empty-row"><td colspan="10">' + (total ? '해당되는 건이 없습니다.' : '엑셀 파일을 업로드하면 결과가 표시됩니다.') + '</td></tr>';
+      tb.innerHTML = '<tr class="empty-row"><td colspan="9">' + (total ? '해당되는 건이 없습니다.' : '엑셀 파일을 업로드하면 결과가 표시됩니다.') + '</td></tr>';
       return;
     }
     tb.innerHTML = hits.map(h => {
       const hr = rankOf(h.h);
-      return '<tr><td class="src">' + esc(h.file) + '</td><td>' + h.rn + '</td><td>' + cellOrBlank(h.svc) + '</td><td>' + cellOrBlank(h.device) + '</td><td>' + termCell(h.term) +
+      return '<tr><td class="src">' + esc(h.file) + '</td><td>' + cellOrBlank(h.svc) + '</td><td>' + cellOrBlank(h.device) + '</td><td>' + termCell(h.term) +
         '</td><td class="col-h">' + esc(h.h) + '</td><td>' + colCell(h.k, hr, aK) + '</td><td>' + colCell(h.n, hr, aN) +
         '</td><td>' + colCell(h.q, hr, aQ) + '</td><td class="tag-hit">해당</td></tr>';
     }).join('');
@@ -161,12 +161,12 @@
     $('btnResetAll').disabled = accumulated.length === 0;
     const tb = $('accBody');
     if (!accumulated.length) {
-      tb.innerHTML = '<tr class="empty-row"><td colspan="10">추가된 항목이 없습니다.</td></tr>';
+      tb.innerHTML = '<tr class="empty-row"><td colspan="9">추가된 항목이 없습니다.</td></tr>';
       return;
     }
     tb.innerHTML = accumulated.map(a => {
       const hr = rankOf(a.h);
-      return '<tr><td class="src">' + esc(a.file) + '</td><td>' + a.rn + '</td><td>' + cellOrBlank(a.svc) + '</td><td>' + cellOrBlank(a.device) +
+      return '<tr><td class="src">' + esc(a.file) + '</td><td>' + cellOrBlank(a.svc) + '</td><td>' + cellOrBlank(a.device) +
         '</td><td>' + termCell(a.term) + '</td><td class="col-h">' + esc(a.h) + '</td><td>' + gradeCell(a.k, hr) + '</td><td>' + gradeCell(a.n, hr) +
         '</td><td>' + gradeCell(a.q, hr) + '</td><td><button class="icon-btn" data-del data-file="' + escAttr(a.file) + '" data-rn="' + a.rn + '" title="삭제">' + xIcon() + '</button></td></tr>';
     }).join('');
@@ -210,7 +210,7 @@
     return await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   }
 
-  function accToRows() { return accumulated.map(a => [a.file, a.rn, a.svc, a.device, a.term, a.h, a.k, a.n, a.q]); }
+  function accToRows() { return accumulated.map(a => [a.file, a.svc, a.device, a.term, a.h, a.k, a.n, a.q]); }
 
   // ---- 이벤트 ----
   function bind() {
