@@ -38,6 +38,12 @@
     font-size: 19px; margin: 0 0 2px; color: #4a431f;
     display: flex; align-items: center; gap: 8px;
   }
+  .edit-btn {
+    margin-left: auto; border: none; background: #e9d873; color: #5b5012;
+    font-family: inherit; font-size: 12px; font-weight: 700;
+    padding: 5px 11px; border-radius: 14px; cursor: pointer;
+  }
+  .editing .edit-btn { background: #7bc47f; color: #163d18; }
   .date { font-size: 12px; color: #8a7f4a; margin-bottom: 12px; }
   .who {
     display: flex; align-items: center; gap: 6px;
@@ -79,6 +85,23 @@
   li.done { opacity: .35; }
   li.done .txt { text-decoration: line-through; }
   li.done .box { background: #b9a83e; }
+  /* 편집 모드용 버튼 */
+  li .mini {
+    flex: 0 0 auto; border: none; background: transparent;
+    font-size: 16px; cursor: pointer; padding: 0 3px; line-height: 1.3;
+  }
+  .add-row {
+    display: none; align-items: center; gap: 6px; padding: 8px 2px 2px;
+  }
+  .editing .add-row { display: flex; }
+  .add-row input {
+    flex: 1; font-family: inherit; font-size: 14px; padding: 6px 8px;
+    border: 1.5px solid #c9b94e; border-radius: 6px; background: #fffef0; color: #3d3713;
+  }
+  .add-row button {
+    border: none; background: #7bc47f; color: #163d18; font-weight: 800;
+    font-family: inherit; font-size: 14px; padding: 7px 12px; border-radius: 6px; cursor: pointer;
+  }
   .empty { font-size: 13px; color: #a79a5e; padding: 8px 2px; font-style: italic; }
   .footer {
     margin-top: 18px; display: flex; justify-content: space-between;
@@ -91,29 +114,28 @@
   }
   .reset:active { background: #ddc94f; }
   .count { font-weight: 800; color: #6b6029; }
+  .hint { font-size: 11px; color: #a8993f; margin-top: 6px; display: none; }
+  .editing .hint { display: block; }
 </style>
 </head>
 <body>
-<div class="note">
-  <h1>📝 오늘 할일</h1>
+<div class="note" id="note">
+  <h1>📝 오늘 할일 <button class="edit-btn" id="editBtn">✏️ 편집</button></h1>
   <div class="date" id="date"></div>
-  <div class="who">
-    이름:
-    <select id="who">
-      <option value="김한아">김한아</option>
-      <option value="서영민">서영민</option>
-      <option value="고지원">고지원</option>
-    </select>
-    <span id="leftcount" class="count"></span>
-  </div>
 
   <div class="sec-title">📌 내 담당업무</div>
   <ul id="own"></ul>
+  <div class="add-row">
+    <input id="addInput" type="text" placeholder="새 담당업무 이름 입력">
+    <button id="addBtn">+ 추가</button>
+  </div>
 
   <div class="sec-title toggle" id="bakTitle">
     <span class="arrow">▶</span> 🤝 내 대무업무 <span id="bakCount" style="font-weight:600;color:#a8993f;"></span>
   </div>
   <ul id="bak" class="collapsed"></ul>
+
+  <div class="hint">✏️ 편집 중: 이름 누르면 수정 · 🗑️ 누르면 삭제 · 아래 칸에서 담당업무 추가</div>
 
   <div class="footer">
     <span>한 건 누르면 지워져요 · 매일 아침 다시 채워짐</span>
@@ -122,33 +144,42 @@
 </div>
 
 <script>
-/* ===== 업무 목록 =====
-   사진에서 읽은 내용이에요. 틀린 업무명/담당자 있으면 알려주시면 바로 고칠게요. */
-const TASKS = [
-  { type:"정기", task:"물류", owner:"고지원", backup:"서영민", cyc:"매일" },
-  { type:"정기", task:"요금제 하향 확인 M+3", owner:"김한아", backup:"", cyc:"매월 05일" },
-  { type:"정기", task:"세금계산서 완료여부 확인", owner:"김한아", backup:"", cyc:"매월 말일" },
-  { type:"정기", task:"<20일 이전> 계산서 및 정산금", owner:"김한아", backup:"", cyc:"매월 25일" },
-  { type:"정기", task:"시장단가 접수", owner:"김한아", backup:"", cyc:"매일 오전" },
-  { type:"수시", task:"거래처 정보 등록", owner:"김한아", backup:"", cyc:"" },
-  { type:"정기", task:"[무선] SK 정책 전달", owner:"김한아", backup:"", cyc:"" },
-  { type:"정기", task:"[무선] SK 시장단가 카톡전달", owner:"김한아", backup:"서영민", cyc:"매일 오전" },
-  { type:"수시", task:"올케어 관리", owner:"서영민", backup:"김한아", cyc:"" },
-  { type:"정기", task:"SKT 유선 영업 업데이트 현황", owner:"서영민", backup:"", cyc:"매일 오전" },
-  { type:"정기", task:"공시지원금 변동 확인", owner:"서영민", backup:"", cyc:"매일" },
-  { type:"정기", task:"판매점 포탈", owner:"서영민", backup:"김한아", cyc:"매일 출근후" },
-  { type:"정기", task:"SK 유선 정산입력 (11시 전까지)", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
-  { type:"정기", task:"SK 무선 기기접수 정산입력 (11시까지)", owner:"서영민", backup:"김한아", cyc:"" },
-  { type:"정기", task:"<25-27일> 동탄 기기 미개통 확인", owner:"서영민", backup:"", cyc:"매월 27일" },
-  { type:"수시", task:"웹 접수 등록 (유선) + 유선정산 시트입력", owner:"서영민", backup:"김한아", cyc:"" },
-  { type:"정기", task:"[무선] 정산시트 정책금액 확인", owner:"서영민", backup:"", cyc:"매일" },
-  { type:"정기", task:"[무선] 서비스 관련 반영", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
-  { type:"정기", task:"[무선] SK 무선 기기개통 정산입력", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
-  { type:"정기", task:"[무선] 개통확인", owner:"서영민", backup:"김한아", cyc:"매일 오후" },
-  { type:"수시", task:"웹 접수 등록 (무선)", owner:"서영민", backup:"김한아", cyc:"" },
-  { type:"정기", task:"[무선] KT 비대면 데이터 개통 리스트", owner:"서영민", backup:"", cyc:"매월" },
-  { type:"정기", task:"[무선] KT 재고현황 카톡전달 (BMT)", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
+/* ===== 기본 업무 목록 (처음 한 번만 사용, 이후엔 편집한 내용이 저장돼서 보임) ===== */
+const DEFAULT_TASKS = [
+  { id:"d1",  task:"물류", owner:"고지원", backup:"서영민", cyc:"매일" },
+  { id:"d2",  task:"요금제 하향 확인 M+3", owner:"김한아", backup:"", cyc:"매월 05일" },
+  { id:"d3",  task:"세금계산서 완료여부 확인", owner:"김한아", backup:"", cyc:"매월 말일" },
+  { id:"d4",  task:"<20일 이전> 계산서 및 정산금", owner:"김한아", backup:"", cyc:"매월 25일" },
+  { id:"d5",  task:"시장단가 접수", owner:"김한아", backup:"", cyc:"매일 오전" },
+  { id:"d6",  task:"거래처 정보 등록", owner:"김한아", backup:"", cyc:"" },
+  { id:"d7",  task:"[무선] SK 정책 전달", owner:"김한아", backup:"", cyc:"" },
+  { id:"d8",  task:"[무선] SK 시장단가 카톡전달", owner:"김한아", backup:"서영민", cyc:"매일 오전" },
+  { id:"d9",  task:"올케어 관리", owner:"서영민", backup:"김한아", cyc:"" },
+  { id:"d10", task:"SKT 유선 영업 업데이트 현황", owner:"서영민", backup:"", cyc:"매일 오전" },
+  { id:"d11", task:"공시지원금 변동 확인", owner:"서영민", backup:"", cyc:"매일" },
+  { id:"d12", task:"판매점 포탈", owner:"서영민", backup:"김한아", cyc:"매일 출근후" },
+  { id:"d13", task:"SK 유선 정산입력 (11시 전까지)", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
+  { id:"d14", task:"SK 무선 기기접수 정산입력 (11시까지)", owner:"서영민", backup:"김한아", cyc:"" },
+  { id:"d15", task:"<25-27일> 동탄 기기 미개통 확인", owner:"서영민", backup:"", cyc:"매월 27일" },
+  { id:"d16", task:"웹 접수 등록 (유선) + 유선정산 시트입력", owner:"서영민", backup:"김한아", cyc:"" },
+  { id:"d17", task:"[무선] 정산시트 정책금액 확인", owner:"서영민", backup:"", cyc:"매일" },
+  { id:"d18", task:"[무선] 서비스 관련 반영", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
+  { id:"d19", task:"[무선] SK 무선 기기개통 정산입력", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
+  { id:"d20", task:"[무선] 개통확인", owner:"서영민", backup:"김한아", cyc:"매일 오후" },
+  { id:"d21", task:"웹 접수 등록 (무선)", owner:"서영민", backup:"김한아", cyc:"" },
+  { id:"d22", task:"[무선] KT 비대면 데이터 개통 리스트", owner:"서영민", backup:"", cyc:"매월" },
+  { id:"d23", task:"[무선] KT 재고현황 카톡전달 (BMT)", owner:"서영민", backup:"김한아", cyc:"매일 오전" },
 ];
+
+/* ===== 업무 목록 저장/불러오기 (편집 내용 보관) ===== */
+function loadTasks(){
+  try {
+    const raw = localStorage.getItem("todoTasks");
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return DEFAULT_TASKS.map(t => ({...t}));
+}
+function saveTasks(){ localStorage.setItem("todoTasks", JSON.stringify(tasks)); }
 
 /* ===== 날짜 (오늘) ===== */
 function todayStr(){
@@ -165,53 +196,75 @@ function todayLabel(){
 function loadDone(){
   try {
     const raw = JSON.parse(localStorage.getItem("todoDone") || "{}");
-    if (raw.date !== todayStr()) return {};   // 날짜 바뀌면 초기화
+    if (raw.date !== todayStr()) return {};
     return raw.items || {};
   } catch(e){ return {}; }
 }
-function saveDone(items){
-  localStorage.setItem("todoDone", JSON.stringify({ date: todayStr(), items }));
-}
+function saveDone(){ localStorage.setItem("todoDone", JSON.stringify({ date: todayStr(), items: done })); }
 
+let tasks = loadTasks();
 let done = loadDone();
-let me = localStorage.getItem("todoWho") || "김한아";
+const me = "김한아";
+let editMode = false;
 
+const $note = document.getElementById("note");
 const $own = document.getElementById("own");
 const $bak = document.getElementById("bak");
-const $who = document.getElementById("who");
 const $bakTitle = document.getElementById("bakTitle");
 const $bakCount = document.getElementById("bakCount");
-$who.value = me;
+const $editBtn = document.getElementById("editBtn");
 document.getElementById("date").textContent = todayLabel();
-
-function key(t){ return t.task + "|" + t.owner; }
 
 function makeLi(t){
   const li = document.createElement("li");
-  const k = key(t);
-  if (done[k]) li.classList.add("done");
+  if (done[t.id]) li.classList.add("done");
   const cyc = t.cyc ? `<span class="cyc">${t.cyc}</span>` : "";
-  li.innerHTML = `<span class="box">${done[k] ? "✓" : ""}</span>` +
-                 `<span class="txt">${t.task}${cyc}</span>`;
-  li.onclick = () => {
-    if (done[k]) { delete done[k]; }
-    else { done[k] = true; }
-    saveDone(done);
-    render();
-  };
+
+  if (editMode) {
+    li.style.cursor = "default";
+    li.innerHTML = `<span class="txt">${t.task}${cyc}</span>` +
+                   `<button class="mini rename" title="이름수정">✏️</button>` +
+                   `<button class="mini del" title="삭제">🗑️</button>`;
+    li.querySelector(".rename").onclick = () => renameTask(t);
+    li.querySelector(".txt").onclick = () => renameTask(t);
+    li.querySelector(".del").onclick = () => deleteTask(t);
+  } else {
+    li.innerHTML = `<span class="box">${done[t.id] ? "✓" : ""}</span>` +
+                   `<span class="txt">${t.task}${cyc}</span>`;
+    li.onclick = () => {
+      if (done[t.id]) delete done[t.id]; else done[t.id] = true;
+      saveDone(); render();
+    };
+  }
   return li;
 }
 
+function renameTask(t){
+  const v = prompt("업무 이름을 고쳐주세요", t.task);
+  if (v !== null && v.trim()) { t.task = v.trim(); saveTasks(); render(); }
+}
+function deleteTask(t){
+  if (confirm(`'${t.task}'\n이 업무를 삭제할까요?`)) {
+    tasks = tasks.filter(x => x.id !== t.id);
+    delete done[t.id];
+    saveTasks(); saveDone(); render();
+  }
+}
+function addTask(){
+  const inp = document.getElementById("addInput");
+  const v = inp.value.trim();
+  if (!v) { inp.focus(); return; }
+  tasks.push({ id: "u" + Date.now() + Math.floor(Math.random()*1000), task: v, owner: me, backup: "", cyc: "" });
+  inp.value = "";
+  saveTasks(); render();
+}
+
 function render(){
-  me = $who.value;
-  localStorage.setItem("todoWho", me);
   $own.innerHTML = ""; $bak.innerHTML = "";
 
-  const own = TASKS.filter(t => t.owner === me);
-  const bak = TASKS.filter(t => t.backup === me);
-
-  // 안 끝난 것 위로, 끝난 것 아래로
-  const order = arr => arr.slice().sort((a,b)=> (done[key(a)]?1:0) - (done[key(b)]?1:0));
+  const own = tasks.filter(t => t.owner === me);
+  const bak = tasks.filter(t => t.backup === me);
+  const order = arr => arr.slice().sort((a,b)=> (done[a.id]?1:0) - (done[b.id]?1:0));
 
   if (own.length) order(own).forEach(t => $own.appendChild(makeLi(t)));
   else $own.innerHTML = '<div class="empty">담당업무 없음</div>';
@@ -219,12 +272,8 @@ function render(){
   if (bak.length) order(bak).forEach(t => $bak.appendChild(makeLi(t)));
   else $bak.innerHTML = '<div class="empty">대무업무 없음</div>';
 
-  const bakLeft = bak.filter(t => !done[key(t)]).length;
+  const bakLeft = bak.filter(t => !done[t.id]).length;
   $bakCount.textContent = bak.length ? `(${bakLeft}/${bak.length})` : "";
-
-  const all = [...own, ...bak];
-  const left = all.filter(t => !done[key(t)]).length;
-  document.getElementById("leftcount").textContent = left ? `· 남은 일 ${left}개` : "· 다 했어요! 🎉";
 }
 
 /* 대무업무 접기/펴기 */
@@ -233,8 +282,18 @@ $bakTitle.onclick = () => {
   $bakTitle.classList.toggle("open", !collapsed);
 };
 
-$who.onchange = render;
-document.getElementById("reset").onclick = () => { done = {}; saveDone(done); render(); };
+/* 편집 모드 켜고 끄기 */
+$editBtn.onclick = () => {
+  editMode = !editMode;
+  $note.classList.toggle("editing", editMode);
+  $editBtn.textContent = editMode ? "✅ 완료" : "✏️ 편집";
+  render();
+};
+
+document.getElementById("addBtn").onclick = addTask;
+document.getElementById("addInput").addEventListener("keydown", e => { if (e.key === "Enter") addTask(); });
+
+document.getElementById("reset").onclick = () => { done = {}; saveDone(); render(); };
 
 render();
 </script>
