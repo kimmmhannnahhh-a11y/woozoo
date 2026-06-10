@@ -190,8 +190,11 @@ async function handle(file){
     outputBlob = await zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     outputName = file.name.replace(/\.xlsx$/i,'') + '_체크.xlsx';
 
-    // 복사용 TSV
-    copyTSV = grid.map(r=>{ let s=''; for(let i=0;i<r.length;i++){ if(i)s+='\t'; s+=(r[i]==null?'':r[i]); } return s; }).join('\n');
+    // 복사용 TSV (y 표시된 행만, 화면 표와 동일)
+    const head = ['행','단말기','해지','H(기준)','K','N','Q','결과'];
+    copyTSV = [head.join('\t')].concat(
+      hits.map(h => [h.rn, h.device, h.term, h.h, h.vals[0], h.vals[1], h.vals[2], 'y'].join('\t'))
+    ).join('\n');
 
     render(total, hits);
   }catch(err){ showErr('처리 중 오류: '+err.message); console.error(err); }
