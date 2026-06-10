@@ -25,8 +25,9 @@
   function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function escAttr(s) { return esc(s).replace(/"/g, '&quot;'); }
   function $(id) { return document.getElementById(id); }
-  function load() { try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch (e) { return []; } }
-  function save() { try { localStorage.setItem(LS_KEY, JSON.stringify(accumulated)); } catch (e) {} }
+  // sessionStorage: 새로고침은 유지, 탭(페이지) 닫으면 자동 초기화
+  function load() { try { return JSON.parse(sessionStorage.getItem(LS_KEY) || '[]'); } catch (e) { return []; } }
+  function save() { try { sessionStorage.setItem(LS_KEY, JSON.stringify(accumulated)); } catch (e) {} }
   function flash(el, text) { el.textContent = text; setTimeout(() => { el.textContent = ''; }, 4000); }
 
   // ---- 엑셀 셀 값 (지수표기 서비스관리번호 풀어서) ----
