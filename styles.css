@@ -69,6 +69,7 @@ body {
 }
 .card__title { font-size: 16px; font-weight: 700; margin: 0; }
 .card__title .count { color: var(--primary); margin-left: 4px; }
+.card__title .files { color: var(--primary); font-size: 14px; font-weight: 600; margin-left: 10px; }
 .card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* ===== Upload ===== */

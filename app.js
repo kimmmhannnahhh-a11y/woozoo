@@ -99,7 +99,7 @@
       try { const r = await parseOne(file); total += r.fileTotal; allRows.push(...r.rows); }
       catch (err) { errs.push(file.name + ': ' + err.message); console.error(err); }
     }
-    loaded = { rows: allRows, total, fileCount: files.length };
+    loaded = { rows: allRows, total, fileCount: files.length, names: files.map(f => f.name) };
     recompute();
     if (errs.length) showErr('일부 파일 오류 — ' + errs.join(' / '));
   }
@@ -135,6 +135,7 @@
     $('statHit').textContent = hits.length.toLocaleString();
     $('statOk').textContent = (total - hits.length).toLocaleString();
     $('curCount').textContent = '(' + hits.length + '건' + (fileCount > 1 ? ' · ' + fileCount + '개 파일' : '') + ')';
+    const fEl = $('curFiles'); if (fEl) fEl.textContent = (loaded.names && loaded.names.length) ? loaded.names.join(', ') : '';
     $('btnAdd').disabled = hits.length === 0;
     $('btnClear').disabled = total === 0;
 
